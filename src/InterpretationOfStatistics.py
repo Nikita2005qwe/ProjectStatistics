@@ -1,0 +1,2 @@
+class StatisticsInterpretation:
+    pass

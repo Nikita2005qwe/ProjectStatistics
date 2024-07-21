@@ -1,4 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
+from statisticsCalculation import StatisticsCalculation
 import sys
 
 
@@ -29,8 +31,12 @@ class UiMainWindow(object):
         
         self.lineEdit: QtWidgets.QLineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.progressBar: QtWidgets.QProgressBar = QtWidgets.QProgressBar(self.centralwidget)
+
+        self.uploaded_file = None
+        self.isCalculated = False
+        self.ExitButton.clicked.connect(lambda: self.Exit(MainWindow))
     
-    def setupUi(self, main_window):
+    def setupUi(self, main_window) -> None:
         """
         Функция устанавливающая расположение и размеры кнопок на основном окне
         
@@ -92,7 +98,7 @@ class UiMainWindow(object):
         self.retranslateUi(main_window)
         QtCore.QMetaObject.connectSlotsByName(main_window)
     
-    def retranslateUi(self, main_window):
+    def retranslateUi(self, main_window) -> None:
         """
         Функция добавляющая надписи на виджеты
         """
@@ -104,7 +110,7 @@ class UiMainWindow(object):
         self.label.setText(_translate("main_window", "Поиск слова"))
         self.showStatisticButton_2.setText(_translate("main_window", "Количество совпадений"))
     
-    def addFunctions(self):
+    def addFunctions(self) -> None:
         """
         Функция добавляющая функционал кнопкам
         """
@@ -116,37 +122,80 @@ class UiMainWindow(object):
         }
         for btn in button_assignment:
             btn.clicked.connect(button_assignment[btn])
-    
-    def loadFile(self):
+
+    def loadFile(self) -> int:
         """
         Функция загрузки файлов расширения .txt
+        
+        fileName: str - путь к загружаемому файлу
         """
-        pass
+
+        fileName: str = QFileDialog.getOpenFileName(
+            None, "Выбрать файл", "../txt", "text (*.txt)")[0]
+        
+        if not fileName:
+            self.showInfo("Произошла ошибка при загрузке файла")
+            return -1
+
+        self.uploaded_file = fileName
+        self.showInfo("Файл был успешно загружен")
+        self.isCalculated = False
+        return 0
     
-    def showStatistic(self):
+    def showStatistic(self) -> int:
         """
         Функция отображающая статистику по загруженному файлу
         """
-        pass
+        if not self.isLoaded():
+            self.showInfo("Файл не был загружен")
+            return -1
+        
+        if not self.isCalculated:
+            StatisticsCalculation(self.uploaded_file, self.progressBar)
+            self.isCalculated = not self.isCalculated
+        return 0
     
-    def Exit(self):
-        """
-        Функция осуществляющая корректный выход из приложения
-        """
-        pass
-    
-    def showStatisticOnWord(self):
+    def showStatisticOnWord(self) -> int:
         """
         Функция отображающая статистику по введённой последовательности символов
         в загруженном файле
         """
-        pass
+        if not self.isLoaded():
+            self.showInfo("Файл не был загружен")
+            return -1
+        
+        if not self.isCalculated:
+            StatisticsCalculation(self.uploaded_file, self.progressBar)
+            self.isCalculated = not self.isCalculated
+        return 0
     
-    def isLoaded(self):
+    def isLoaded(self) -> bool:
         """
         Функция показывающая загружен ли в данный момент файл
         """
-        pass
+        return bool(self.uploaded_file)
+
+    @staticmethod
+    def Exit(main_window):
+        """
+        Функция осуществляющая корректный выход из приложения
+        """
+        main_window.close()
+        sys.exit()
+
+    @staticmethod
+    def showInfo(text: str):
+        """
+        Метод выводящий сообщение на экран пользователям
+
+        text:str - текст сообщения
+        msg:QMessageBox - окно с информацией
+        """
+        msg = QMessageBox()
+        msg.setWindowTitle("Информация")
+        msg.setText(text)
+        msg.exec_()
+        return 0
 
 
 if __name__ == "__main__":
