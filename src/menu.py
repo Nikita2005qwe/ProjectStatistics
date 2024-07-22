@@ -1,6 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from statisticsCalculation import StatisticsCalculation
+from InterpretationOfStatistics import StatisticsInterpretation
+from random import randint
 import sys
 
 
@@ -17,6 +19,7 @@ class UiMainWindow(object):
         showStatisticButton_2 - кнопка выводящая статистику по заданной последовательности символов
         lineEdit - виджет для ввода проверяемой последовательнсоти символов
         progressBar - полоса отображающая завершение анализа статистики
+        checkBox - кнопка для подтверждения сохранения файлов
         
         """
         self.centralwidget: QtWidgets.QWidget = QtWidgets.QWidget(MainWindow)
@@ -31,8 +34,11 @@ class UiMainWindow(object):
         
         self.lineEdit: QtWidgets.QLineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.progressBar: QtWidgets.QProgressBar = QtWidgets.QProgressBar(self.centralwidget)
-
+        
+        self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
+        
         self.uploaded_file = None
+        self.statistic = None
         self.isCalculated = False
         self.ExitButton.clicked.connect(lambda: self.Exit(MainWindow))
     
@@ -91,7 +97,11 @@ class UiMainWindow(object):
         self.showStatisticButton_2.setGeometry(QtCore.QRect(630, 120, 240, 50))
         self.showStatisticButton_2.setFont(font_low)
         self.showStatisticButton_2.setObjectName("showStatisticButton_2")
-
+        
+        self.checkBox.setGeometry(QtCore.QRect(630, 330, 240, 50))
+        self.checkBox.setFont(font_low)
+        self.checkBox.setObjectName("checkBox")
+        
         self.addFunctions()
         
         main_window.setCentralWidget(self.centralwidget)
@@ -109,6 +119,7 @@ class UiMainWindow(object):
         self.ExitButton.setText(_translate("main_window", "Выход"))
         self.label.setText(_translate("main_window", "Поиск слова"))
         self.showStatisticButton_2.setText(_translate("main_window", "Количество совпадений"))
+        self.checkBox.setText(_translate("main_window", "Сохранять полученные\nдиаграммы"))
     
     def addFunctions(self) -> None:
         """
@@ -122,22 +133,24 @@ class UiMainWindow(object):
         }
         for btn in button_assignment:
             btn.clicked.connect(button_assignment[btn])
-
+    
     def loadFile(self) -> int:
         """
         Функция загрузки файлов расширения .txt
+        Добавлена загрузка .docx документов
         
         fileName: str - путь к загружаемому файлу
         """
-
         fileName: str = QFileDialog.getOpenFileName(
-            None, "Выбрать файл", "../txt", "text (*.txt)")[0]
+            None, "Выбрать файл", "../txt", "text (*.txt; *.docx)")[0]
         
         if not fileName:
             self.showInfo("Произошла ошибка при загрузке файла")
             return -1
-
+        
         self.uploaded_file = fileName
+        self.progressBar.setValue(int(0))
+        self.labelStatistic.clear()
         self.showInfo("Файл был успешно загружен")
         self.isCalculated = False
         return 0
@@ -145,14 +158,27 @@ class UiMainWindow(object):
     def showStatistic(self) -> int:
         """
         Функция отображающая статистику по загруженному файлу
+        
+        hash_ - 6 случайных цифр
         """
         if not self.isLoaded():
             self.showInfo("Файл не был загружен")
             return -1
         
         if not self.isCalculated:
-            StatisticsCalculation(self.uploaded_file, self.progressBar)
+            self.statistic = StatisticsCalculation(self.uploaded_file, self.progressBar)
             self.isCalculated = not self.isCalculated
+        
+        hash_ = [str(randint(0, 9)) for _ in range(6)]
+        hash_ = "".join(hash_)
+        
+        nameDiagram = "../img/" + self.uploaded_file.split("/")[-1].split(".")[0] + hash_ + ".png"
+        StatisticsInterpretation.showStatisticOnFile(self.statistic.getNumberOfWords(),
+                                                     self.statistic.getNumberOfLetters(),
+                                                     self.labelStatistic,
+                                                     nameDiagram,
+                                                     auto_delete=not self.checkBox.isChecked())
+        
         return 0
     
     def showStatisticOnWord(self) -> int:
@@ -165,8 +191,21 @@ class UiMainWindow(object):
             return -1
         
         if not self.isCalculated:
-            StatisticsCalculation(self.uploaded_file, self.progressBar)
+            self.statistic = StatisticsCalculation(self.uploaded_file, self.progressBar)
             self.isCalculated = not self.isCalculated
+        
+        hash_ = [str(randint(0, 9)) for _ in range(6)]
+        hash_ = "".join(hash_)
+        
+        nameDiagram = "../img/" + self.uploaded_file.split("/")[-1].split(".")[0] + hash_ + ".png"
+        StatisticsInterpretation.showStatisticOnWords(self.statistic.getNumberOfWords(),
+                                                      self.labelStatistic,
+                                                      self.lineEdit.text(),
+                                                      nameDiagram,
+                                                      auto_delete=not self.checkBox.isChecked())
+        
+        self.lineEdit.clear()
+        
         return 0
     
     def isLoaded(self) -> bool:
@@ -174,7 +213,7 @@ class UiMainWindow(object):
         Функция показывающая загружен ли в данный момент файл
         """
         return bool(self.uploaded_file)
-
+    
     @staticmethod
     def Exit(main_window):
         """
@@ -182,7 +221,7 @@ class UiMainWindow(object):
         """
         main_window.close()
         sys.exit()
-
+    
     @staticmethod
     def showInfo(text: str):
         """

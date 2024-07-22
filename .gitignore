@@ -1,3 +1,8 @@
 ProgramVenv
 .idea
 src/__pycache__
+src/test
+img/
+logs/
+txt/
+src/ui
