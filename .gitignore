@@ -5,4 +5,5 @@ src/test
 img/
 logs/
 txt/
-src/ui
+src/ui/
+xls/

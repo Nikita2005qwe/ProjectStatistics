@@ -1,7 +1,6 @@
-from re import split
+from functionOfUploadDict import uploadDict
 from docx import Document
 from PyQt5.QtWidgets import QProgressBar
-
 
 class StatisticsCalculation:
     """
@@ -20,16 +19,7 @@ class StatisticsCalculation:
             file_size = len(doc.paragraphs)
             cnt = 0
             for paragraph in doc.paragraphs:
-                # Вынести в отдельную функцию
-                string = paragraph.text
-                word_list: list[str] = split(r"[-,.!/<>():;?\n\t ]+", string)
-                for word in word_list:
-                    if not word:
-                        continue
-                    try:
-                        number_of_words[word] += 1
-                    except KeyError:
-                        number_of_words[word] = 1
+                uploadDict(paragraph.text, number_of_words, lambda: 1, True)
                 progress_bar.setValue(int(cnt / file_size * 50))
                 cnt += 1
             progress_bar.setValue(int(50))
@@ -39,15 +29,7 @@ class StatisticsCalculation:
         with open(path, encoding="utf-8") as file:
             cnt = 0
             for string in file:
-                #Вынести в отдельную функцию
-                word_list: list[str] = split(r"[-,.!/<>():;?\n\t ]+", string)
-                for word in word_list:
-                    if not word:
-                        continue
-                    try:
-                        number_of_words[word] += 1
-                    except KeyError:
-                        number_of_words[word] = 1
+                uploadDict(string, number_of_words, lambda: 1, True)
                 progress_bar.setValue(int(cnt/file_size*50))
                 cnt += 1
             progress_bar.setValue(int(50))
@@ -59,11 +41,7 @@ class StatisticsCalculation:
         file_size = len(number_of_words)
         cnt = 0
         for word in number_of_words:
-            for letter in word:
-                try:
-                    number_of_letters[letter] += number_of_words[word]
-                except KeyError:
-                    number_of_letters[letter] = number_of_words[word]
+            uploadDict(word, number_of_letters, lambda: number_of_words[word], False)
             progress_bar.setValue(int(50+(cnt / file_size) * 50))
             cnt += 1
         progress_bar.setValue(int(100))

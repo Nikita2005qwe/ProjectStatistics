@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtGui import QPixmap
 import matplotlib.pyplot as plt
+from pyexcel import save_book_as
 from os import remove
 
 
@@ -8,7 +9,33 @@ class StatisticsInterpretation:
     """
     Класс выводящий диаграмму со статистикой по загруженному файлу
     """
+    @staticmethod
+    def transferringStatistics(number_of_words: dict[str, int], number_of_letters: dict[str, int],
+                               file_name: str) -> None:
+        
+        saved_dict: dict[str, list] = {
+            "Sheet 1": [["Номер слова", "Слова", "Количство", "", "Общее количство слов"]],
+            "Sheet 2": [["Номер буквы", "Буквы", "Количство"]]
+        }
+        
+        cnt = 0
+        sum_words = 0
+        for word in number_of_words:
+            cnt += 1
+            num_of_words = number_of_words[word]
+            sum_words += num_of_words
+            saved_dict["Sheet 1"].append([cnt, word, num_of_words])
 
+        saved_dict["Sheet 1"][1].append("")
+        saved_dict["Sheet 1"][1].append(sum_words)
+        
+        cnt = 0
+        for letter in number_of_letters:
+            cnt += 1
+            saved_dict["Sheet 2"].append([cnt, letter, number_of_letters[letter]])
+
+        save_book_as(bookdict=saved_dict, dest_file_name=file_name)
+    
     @staticmethod
     def showStatisticOnWords(number_of_words: dict[str, int], label_info: QLabel, word: str, name_diagram: str,
                              *, auto_delete: bool = True) -> None:
