@@ -1,5 +1,6 @@
 from random import randint
 import sys
+from os import getcwd, chdir
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5 import QtCore, QtGui, QtWidgets
 from statisticsCalculation import StatisticsCalculation
@@ -279,6 +280,13 @@ class UiMainWindow(object):
 
 
 if __name__ == "__main__":
+    if getcwd().split("\\")[-1] == "src":
+        pass
+    elif getcwd().split("\\")[-1] == "ProjectStatistics":
+        chdir("src")
+    else:
+        print("Перейдите в папку с приложением")
+        sys.exit()
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = UiMainWindow()
