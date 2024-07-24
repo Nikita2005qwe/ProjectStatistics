@@ -19,4 +19,4 @@ pip install -r requirements.txt
 
 3.Запустите:
 
-python src/main.py
+python src/menu.py
